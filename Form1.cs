@@ -7,285 +7,129 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml; 
 
-namespace Excel
+namespace XML
 {
-    public class Parser 
+    public partial class Form1 : Form
     {
-        enum Types {NONE, DELIMITER, NUMBER };
-        string s = "";
-        string exp;
-        int expIdx;
-        string token;
-        Types tokType;
-        public string str_error="";
-
-        public Parser() 
+        string path = "DataBase.xml";
+        List<Student> final = new List<Student>();
+        public Form1()
         {
-            
+            InitializeComponent();
         }
 
-        public double ExpressionStart(string exptr) 
+        private void Search_Click(object sender, EventArgs e)
         {
-            double result;
-            exp = exptr;
-            int l = exp.Length;
-            if (exp[l - 1].Equals('+') || (exp[l - 1].Equals('-') || (exp[l - 1].Equals('/') || (exp[l - 1].Equals('*') || (exp[l - 1].Equals('%') || (exp[l - 1].Equals('|') || (exp[l - 1].Equals('^') || (exp[l - 1].Equals('>') || (exp[l - 1].Equals('<'))))))))))
-                {
-                MessageBox.Show("Last lex should be expression");
-                str_error = "Last lex should be expression";
-                }
-            expIdx = 0;
-            try
+            Student _student = OurStudent();
+            if (LINQ.Checked) 
             {
-                GetToken();
-                if (token == "")
-                {
-                    MessageBox.Show("no expression");
-                    str_error = "no expression";
-                    return 0.0;
-                }
-                ExpPorivn(out result);
-                if (token != "")
-                {
-                    MessageBox.Show("Last lex must = 0");
-                    return result;
-                }
+                IStrategy CurrentStrategy = new LINQ(path);
+                final = CurrentStrategy.Algorithm(_student, path);
+                Output(final);
             }
-            catch (Exception ex)
+            if (DOM.Checked)
             {
-                MessageBox.Show(ex.Message);
-                return 0.0;
+                IStrategy CurrentStrategy = new DOM(path);
+                final = CurrentStrategy.Algorithm(_student, path);
+                Output(final);
             }
-            return result;
+           /* if (SAX.Checked)
+            {
+                IStrategy CurrentStrategy = new SAX(path);
+                final = CurrentStrategy.Algorithm(_student, path);
+                Output(final);
+            }*/
         }
-        void Expr(out double result) 
+        private Student OurStudent() 
         {
-            int varIdx;
-            Types ttokType;
-            string temptoken;
-            ExpPorivn(out result);
-        }
-        void ExpPorivn(out double result) 
-        {
-            string op;
-            double partialResult;
-            ExpPlusMin(out result);
-            while ((op = token) == ">" || op == "<") 
-            {
-                GetToken();
-                ExpPlusMin(out partialResult);
-                switch (op) 
-                {
-                    case ">":
-                        if (result > partialResult) result = 1.0;
-                        else result = 0.0;
-                        break;
-                    case "<":
-                        if (result < partialResult) result = 1.0;
-                        else result = 0.0;
-                        break;
-
-                }
-            }
+            string[] info = new string[6];
+            if (Speciality.Checked) info[0] = Convert.ToString(SpecialityBox.Text);
+            if (Group.Checked) info[1] = Convert.ToString(GroupBox.Text);
+            if (Room.Checked) info[2] = Convert.ToString(RoomBox.Text);
+            if (Surname.Checked) info[3] = Convert.ToString(SurnameBox.Text);
+            if (Name.Checked) info[4] = Convert.ToString(NameBox.Text);
+            if (PhoneNumber.Checked) info[5] = Convert.ToString(PhoneBox.Text);
+            Student IdealStudent = new Student(info);
+            return IdealStudent;
         }
 
-        void ExpPlusMin(out double result) 
+        private void Clear_Click(object sender, EventArgs e)
         {
-            string op;
-            double partialResult;
-
-            ExpMultdiv(out result);
-            while ((op = token) == "+" || op == "-")
+            richTextBox1.Clear();
+            Speciality.Checked = false;
+            Group.Checked = false;
+            Room.Checked = false;
+            Surname.Checked = false;
+            Name.Checked = false;
+            PhoneNumber.Checked = false;
+            SpecialityBox.Text = null;
+            GroupBox.Text = null;
+            RoomBox.Text = null;
+            SurnameBox.Text = null;
+            NameBox.Text = null;
+            PhoneBox.Text = null;
+            LINQ.Checked = false;
+            DOM.Checked = false;
+            SAX.Checked = false;
+        }
+        private void Output(List<Student> final) 
+        {
+            int i = 1;
+            Console.WriteLine("Alg+");
+            foreach (Student n in final) 
             {
-                GetToken();
-                ExpMultdiv(out partialResult);
-                switch (op) 
-                {
-                    case "-":
-                        result = result - partialResult;
-                        break;
-                    case "+":
-                        result = result - partialResult;
-                        break;
-                }
+                richTextBox1.AppendText(i++ + "." + "\n");
+                richTextBox1.AppendText("Speciality:" + n.Speciality + "\n");
+                richTextBox1.AppendText("Group:" + n.Group + "\n");
+                richTextBox1.AppendText("Room:" + n.Room + "\n");
+                richTextBox1.AppendText("Surname:" + n.Surname + "\n");
+                richTextBox1.AppendText("Name:" + n.Name + "\n");
+                richTextBox1.AppendText("Phone Number :" + n.Phonenumber + "\n");
+                richTextBox1.AppendText("--------------------------------------------------\n");
             }
         }
-        void ExpMultdiv(out double result) 
+        public void GetAllStudents() 
         {
-            string op;
-            double partialResult = 0.0;
-            ExpStepin(out result);
-            while ((op = token) == "*" || op == "/" || op == "%")
+            XmlDocument doc = new XmlDocument();
+            doc.Load("DataBase.xml");
+            XmlNodeList elem = doc.SelectNodes("//speciality");
+            foreach (XmlNode e in elem) 
             {
-                GetToken();
-                ExpStepin(out partialResult);
-                switch (op)
+                XmlNodeList list1 = e.ChildNodes;
+                foreach (XmlNode el in list1) 
                 {
-                    case "|":
-                        if (partialResult == 0.0)
-                        {
-
-                            MessageBox.Show("div by zero");
-                            str_error = "invalid expression";
-                        }
-
-                        else
-                            result = (int)(result) / (int)(partialResult);
-                        break;
-                    case "*":
-                        result = result * partialResult;
-                        break;
-                    case "/":
-                        if (partialResult == 0.0)
-                        {
-                            MessageBox.Show("div by zero");
-                            str_error = "invalid expression";
-                        }
-                        else
-                            result = result / partialResult;
-                        break;
-                    case "%":
-                        if (partialResult == 0.0)
-                        {
-                            MessageBox.Show("div by zero");
-                            str_error = "invalid expression";
-                        }
-                        else
-                            result = (int)result % (int)partialResult;
-                        break;
-                }
-            }
-
-        }
-        void ExpStepin(out double result) 
-        {
-            double partialResult, ex;
-            int t;
-            ExpUnar(out result);
-            if (token == "^") 
-            {
-                GetToken();
-                ExpStepin(out partialResult);
-                ex = result;
-                if (partialResult == 0.0) 
-                {
-                    result = 1.0;
-                    return;
-                }
-                for (t = (int)partialResult - 1; t > 0; t--) 
-                {
-                    result = result * (double)ex;
-                }
-            }
-        }
-        void ExpUnar(out double result) 
-        {
-            string op;
-            op = "";
-            if ((tokType == Types.DELIMITER) && token == "+" || token == "-") 
-            {
-                op = token;
-                GetToken();
-            }
-            ExpDugka(out result);
-            if (op == "-") result = -result;
-        }
-        void ExpDugka(out double result) 
-        {
-            if ((token == "("))
-            {
-                GetToken();
-                ExpPorivn(out result);
-                if (token != ")")
-                {
-                    MessageBox.Show("Unbalanced parens");
-                    str_error = "invalid expression";
-                }
-                GetToken();
-            }
-            else Atom(out result);
-        }
-        void Atom(out double result) 
-        {
-            switch (tokType) 
-            {
-                case Types.NUMBER:
-                    try
+                    XmlNodeList list2 = el.ChildNodes;
+                    foreach (XmlNode ell in list2) 
                     {
-                        result = Double.Parse(token);
+                        string speciality = ell.ParentNode.Attributes.GetNamedItem("SPECIALITY").Value;
+                        if (!SpecialityBox.Items.Contains(speciality))
+                            SpecialityBox.Items.Add(speciality);
+                        string group = ell.ParentNode.Attributes.GetNamedItem("GROUP").Value;
+                        if (!SpecialityBox.Items.Contains(group))
+                            SpecialityBox.Items.Add(group);
+                        string room = ell.ParentNode.Attributes.GetNamedItem("ROOM").Value;
+                        if (!SpecialityBox.Items.Contains(room))
+                            SpecialityBox.Items.Add(room);
+                        string surname = ell.ParentNode.Attributes.GetNamedItem("SURNAME").Value;
+                        if (!SpecialityBox.Items.Contains(surname))
+                            SpecialityBox.Items.Add(surname);
+                        string name = ell.ParentNode.Attributes.GetNamedItem("NAME").Value;
+                        if (!SpecialityBox.Items.Contains(name))
+                            SpecialityBox.Items.Add(name);
+                        string phonenumber = ell.ParentNode.Attributes.GetNamedItem("PHONENUMBER").Value;
+                        if (!SpecialityBox.Items.Contains(phonenumber))
+                            SpecialityBox.Items.Add(phonenumber);
+                        GroupBox.Items.Add(ell.ParentNode.Attributes.GetNamedItem("Group").Value);
+                        GroupBox.Items.Add(ell.ParentNode.Attributes.GetNamedItem("ROOM").Value);
+                        GroupBox.Items.Add(ell.ParentNode.Attributes.GetNamedItem("SURNAME").Value);
+                        GroupBox.Items.Add(ell.ParentNode.Attributes.GetNamedItem("NAME").Value);
+                        GroupBox.Items.Add(ell.ParentNode.Attributes.GetNamedItem("PHONENUMBER").Value);
+
                     }
-                    catch (FormatException) 
-                    {
-                        result = 0.0;
-                        MessageBox.Show("Synatax errror");
-                        str_error = "syntax error";
-                    }
-                    GetToken();
-                    return;
-                default:
-                    result = 0.0;
-                    break;
-            }
-        }
-        void GetToken()
-        {
-            tokType = Types.NONE;
-            token = "";
-            if (expIdx == exp.Length) return;
-            while (expIdx < exp.Length && Char.IsWhiteSpace(exp[expIdx])) ++expIdx;
-            if (expIdx == exp.Length) return;
-            if (IsDelim(exp[expIdx]))
-            {
-                token += exp[expIdx];
-                expIdx++;
-                tokType = Types.DELIMITER;
-            }
-            else if (Char.IsDigit(exp[expIdx])) 
-            {
-                while (!IsDelim(exp[expIdx])) 
-                {
-                    token += exp[expIdx];
-                    expIdx++;
-                    if (expIdx >= exp.Length) break;
                 }
-                tokType = Types.NUMBER;
             }
-
-
         }
-
-        bool IsDelim(char c) 
-        {
-            if (("+-/%^()<>".IndexOf(c) != -1))
-                return true;
-            return false;
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
-
 }
-
-
-
