@@ -1,0 +1,38 @@
+<?xml version ="1.0" encoding="utf-8"?>
+<StudentDataBase>
+	<speciality ID="1" SPECIALITY="CYBERNETIC">
+		<group GROUP ="K27">
+		  <student ID = "1"
+			ROOM ="307"
+			SURNAME="Mezhybovskiy"
+			NAME = "Yura"
+			PHONENUMBER="888">Text1
+		</student>
+		<student ID = "2"
+			ROOM ="423"
+			SURNAME="Sushko"
+			NAME = "Oleg"
+			PHONENUMBER="123">Text2
+		</student>
+		</group>
+		<group GROUP ="K25">
+		  <student ID = "1"
+			  ROOM ="309"
+			  SURNAME="Vasyuk"
+			    NAME = "Sasha"
+			PHONENUMBER="999">Text3
+		</student>
+		</group>
+		</speciality>
+		<speciality ID ="2" SPECIALITY = "INFORM">
+		<group GROUP = "K27">
+		<student ID = "1"
+			 ROOM ="307"
+			 SURNAME="Ushakov"
+			 Name="Maks"
+			 PHONENUMBER="567">Text4
+		</student>
+	      </group>
+	    </speciality>
+	  </StudentDataBase>				
+
